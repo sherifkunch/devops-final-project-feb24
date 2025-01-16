@@ -9,21 +9,38 @@ on:
       - my-test-branch
 
 jobs:
-  Explore-GitHub-Actions:
+  building-my-first-container:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
-      - name: prin working dir 
-        run: 
-          pwd
-          whoami
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Configure AWS credentials
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1 # Replace with your AWS region
+
+    - name: Log in to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    # Step 4: Build the Docker image
+    - name: Build Docker image
+      run: |
+        IMAGE_TAG=${{ github.sha }}
+        IMAGE_URI=392209090241.dkr.ecr.eu-central-1.amazonaws.com/demo-2025:${IMAGE_TAG}
+        docker build -t $IMAGE_URI .
+
+    # Step 5: Push the Docker image to Amazon ECR
+    - name: Push Docker image to Amazon ECR
+      run: |
+        IMAGE_TAG=${{ github.sha }}
+        IMAGE_URI=392209090241.dkr.ecr.eu-central-1.amazonaws.com/demo-2025:${IMAGE_TAG}
+        docker push $IMAGE_URI
+    
+
