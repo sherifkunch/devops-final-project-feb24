@@ -1,2 +1,5 @@
 .terraform/
 *tfstate*
+
+*.pem
+*.key
